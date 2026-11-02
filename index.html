@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>해적 스파이를 찾아라! - 보물섬 스토리 추리 게임</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --gold-primary: #f59e0b;
+            --gold-light: #fef08a;
+            --brown-accent: #78350f;
+            --wood-dark: #451a03;
+            --red-alert: #ef4444;
+            --green-success: #10b981;
+            --text-light: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Jua', 'Noto Sans KR', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 850px;
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 4px solid var(--gold-primary);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(245, 158, 11, 0.2);
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 헤더 스타일 */
+        header {
+            text-align: center;
+            border-bottom: 2px dashed var(--gold-primary);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 2.2rem;
+            color: var(--gold-light);
+            text-shadow: 3px 3px 0px var(--brown-accent), 0 0 10px rgba(245, 158, 11, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-top: 5px;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        /* 사운드 토글 버튼 */
+        .audio-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--brown-accent);
+            color: var(--gold-light);
+            border: 2px solid var(--gold-primary);
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .audio-btn:hover {
+            transform: scale(1.1);
+            background: var(--gold-primary);
+            color: var(--wood-dark);
+        }
+
+        /* 화면 전환 처리 */
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 1. 시작 및 스토리북 화면 */
+        .story-card {
+            background: #fffbeb;
+            color: #292524;
+            border: 3px solid var(--gold-primary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(120, 53, 15, 0.15);
+            line-height: 1.7;
+            font-size: 1.1rem;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .story-card h3 {
+            font-family: 'Jua', sans-serif;
+            color: var(--brown-accent);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--gold-primary);
+            padding-bottom: 5px;
+        }
+
+        .story-highlight {
+            background-color: #fef08a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #9a3412;
+        }
+
+        /* 버튼 기본 스타일 */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffffff;
+            background: linear-gradient(180deg, #f59e0b, #d97706);
+            border: 3px solid var(--gold-light);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 5px 0 #78350f, 0 8px 15px rgba(0,0,0,0.4);
+            transition: all 0.1s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #78350f, 0 10px 20px rgba(0,0,0,0.5);
+            background: linear-gradient(180deg, #fbbf24, #f59e0b);
+        }
+        .btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #78350f;
+        }
+
+        /* 2. 심문 파트 화면 */
+        .progress-bar-container {
+            width: 100%;
+            height: 16px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid var(--gold-primary);
+        }
+        .progress-bar {
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-light));
+            transition: width 0.3s ease;
+        }
+
+        .character-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid #334155;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .character-card {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+        }
+
+        .img-box {
+            position: relative;
+            width: 220px;
+            height: 280px;
+            flex-shrink: 0;
+            border: 4px solid var(--gold-primary);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        .img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .char-info {
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        .char-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--gold-primary);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .char-name {
+            font-size: 1.7rem;
+            color: var(--gold-light);
+        }
+
+        .char-role {
+            font-size: 1rem;
+            background: var(--brown-accent);
+            color: var(--gold-light);
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .dialogue-box {
+            background: #fffbeb;
+            color: #1c1917;
+            padding: 15px;
+            border-radius: 10px;
+            position: relative;
+            margin-bottom: 15px;
+            font-size: 1.15rem;
+            line-height: 1.5;
+            border-left: 5px solid var(--gold-primary);
+        }
+
+        .clues-title {
+            font-size: 1.1rem;
+            color: var(--gold-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clues-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .clue-badge {
+            background: #334155;
+            color: var(--gold-light);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            border: 1px solid #475569;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-loyal {
+            background: linear-gradient(180deg, #10b981, #059669);
+            border-color: #a7f3d0;
+            box-shadow: 0 5px 0 #047857;
+        }
+        .btn-loyal:hover {
+            background: linear-gradient(180deg, #34d399, #10b981);
+            box-shadow: 0 7px 0 #047857;
+        }
+
+        .btn-spy {
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+            border-color: #fca5a5;
+            box-shadow: 0 5px 0 #991b1b;
+        }
+        .btn-spy:hover {
+            background: linear-gradient(180deg, #f87171, #ef4444);
+            box-shadow: 0 7px 0 #991b1b;
+        }
+
+        /* 3. 엔딩 연출 화면 */
+        .ending-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .ending-card.success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 3px solid var(--green-success);
+        }
+
+        .ending-card.rebellion {
+            background: rgba(239, 68, 68, 0.2);
+            border: 3px solid var(--red-alert);
+            animation: pulseAlert 1s infinite alternate;
+        }
+
+        @keyframes pulseAlert {
+            from { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+            to { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); }
+        }
+
+        .ending-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .ending-title {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+        }
+
+        .ending-card.success .ending-title { color: var(--gold-light); }
+        .ending-card.rebellion .ending-title { color: var(--red-alert); }
+
+        .ending-desc {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-family: 'Noto Sans KR', sans-serif;
+            color: #e2e8f0;
+        }
+
+        .book-recommend-box {
+            background: #fef08a;
+            color: #78350f;
+            border: 3px dashed #b45309;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 1.25rem;
+            font-weight: bold;
+            line-height: 1.6;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: bounceIn 0.8s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 시각적 피드백 어버레이 애니메이션 */
+        .feedback-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feedback-overlay.correct {
+            background: rgba(16, 185, 129, 0.25);
+            opacity: 1;
+        }
+
+        .feedback-overlay.wrong {
+            background: rgba(239, 68, 68, 0.35);
+            opacity: 1;
+        }
+
+        .feedback-badge {
+            font-size: 5rem;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+            transform: scale(0.5);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .feedback-overlay.active .feedback-badge {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <button class="audio-btn" id="soundToggleBtn" onclick="toggleAudio()" title="사운드 온/오프">🔊</button>
+
+        <header>
+            <h1 class="title">🏴‍☠️ 해적 스파이를 찾아라!</h1>
+            <p class="subtitle">소설 『보물섬』 심리 추리 웹게임</p>
+        </header>
+
+        <!-- 1. 스토리북 / 시작 화면 -->
+        <div id="screen-intro" class="screen active">
+            <div class="story-card">
+                <h3>📜 항해 일지: 히스파니올라호의 비밀</h3>
+                <p>소년 짐 호킨스는 전설의 해적왕 '플린트'가 숨겨둔 보물지도를 들고 보물선 <strong>'히스파니올라호'</strong>에 탑승했습니다.</p>
+                <p style="margin-top: 10px;">하지만 배 안에는 위험한 비밀이 숨겨져 있습니다! 바닷가 여관의 노선원 빌리 본즈가 죽기 전 경고했던 <span class="story-highlight">"외다리 선원"</span>과 해적 무리가 선원으로 위장해 침투했다는 소문이 돌기 시작하는데...</p>
+                <p style="margin-top: 10px;">어느 달빛 밝은 밤, 짐이 갑판 위 <span class="story-highlight">사과 궤짝 속</span>에 숨어있을 때, 음산하고 친절한 목소리의 해적 반란 음모를 똑똑히 듣고 말았습니다!</p>
+            </div>
+            
+            <p style="text-align: center; margin-bottom: 20px; font-size: 1.1rem; color: var(--gold-light);">
+                💡 선원들의 증언과 소지품 힌트를 보고, 누가 **[충직한 선원]**이고 누가 **[해적 스파이]**인지 가려내세요!
+            </p>
+
+            <button class="btn" onclick="startGame()">⚓ 항해 시작 & 스파이 심문하기</button>
+        </div>
+
+        <!-- 2. 심문 파트 화면 -->
+        <div id="screen-interrogate" class="screen">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="character-card">
+                <div class="img-box">
+                    <img id="charImg" src="" alt="선원 캐릭터">
+                </div>
+                <div class="char-info">
+                    <div class="char-header">
+                        <h2 class="char-name" id="charName">캐릭터 이름</h2>
+                        <span class="char-role" id="charRole">역할</span>
+                    </div>
+
+                    <div class="dialogue-box" id="charDialogue">
+                        "대사 내용이 들어갑니다."
+                    </div>
+
+                    <div class="clues-title">🔍 소지품 및 소문 힌트</div>
+                    <div class="clues-list" id="charClues">
+                        <!-- 힌트 태그들이 동적으로 생성됨 -->
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-loyal" onclick="makeChoice('충직')">🛡️ 충직한 선원</button>
+                        <button class="btn btn-spy" onclick="makeChoice('스파이')">🏴‍☠️ 해적 스파이</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 엔딩 화면 -->
+        <div id="screen-ending" class="screen">
+            <div class="ending-card" id="endingCard">
+                <div class="ending-icon" id="endingIcon">🏆</div>
+                <h2 class="ending-title" id="endingTitle">엔딩 제목</h2>
+                <p class="ending-desc" id="endingDesc">엔딩 설명 텍스트</p>
+
+                <div class="book-recommend-box">
+                    📖 "착한 요리사 실버의 진짜 정체는 무엇일까? 주인공 짐 호킨스가 해적들의 반란을 어떻게 막아냈는지 소설 『보물섬』에서 직접 확인해보세요!"
+                </div>
+
+                <button class="btn" style="margin-top: 20px;" onclick="resetGame()">🔄 다시 추리하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visual Feedback Overlay -->
+    <div class="feedback-overlay" id="feedbackOverlay">
+        <div class="feedback-badge" id="feedbackBadge">⭕</div>
+    </div>
+
+    <script>
+        // 요청된 4장의 이미지를 완벽 매칭
+        // 1번 사진: 외다리 요리사 존 실버 (외다리, 어깨 위 앵무새, 원목 다리, 파이프)
+        // 2번 사진: 리브지 의사 (초록 코트, 가발, 웃는 얼굴)
+        // 3번 사진: 스몰렛 선장 (제복, 망원경, 윙크/매의 눈)
+        // 4번 사진: 이스라엘 핸즈 (검, 까마귀, 험상궂은 해적)
+
+        const charactersData = [
+            {
+                id: "silver",
+                name: "외다리 요리사 실버",
+                role: "선상 요리사",
+                img: "input_file_0.png",
+                dialogue: "허허, 짐 도령! 내 맛있는 해산물 스튜 한 그릇 먹겠나? 어깨 위의 앵무새 '플린트 선장'도 자네를 아주 좋아한다네!",
+                clues: ["외나무다리와 지팡이", "맛있는 해산물 스튜", "말하는 흰 앵무새", "사과 궤짝 옆에서 들린 반란 음모"],
+                realRole: "스파이", // 겉으로는 호감형이지만 사실 해적 두목!
+                secretInfo: "실버는 겉으로는 다정하지만 사실 해적들의 두목입니다!"
+            },
+            {
+                id: "hands",
+                name: "이스라엘 핸즈",
+                role: "노련한 선원",
+                img: "input_file_3.png",
+                dialogue: "히히히... 술이나 더 가져와! 이 배가 보물섬으로 가든 어디로 가든 내 상관할 바 아니지!",
+                clues: ["독한 럼주 병", "날카롭고 녹슨 칼", "어깨 위의 검은 까마귀", "대놓고 수상하고 험상궂은 눈빛"],
+                realRole: "스파이", // 대놓고 수상함
+                secretInfo: "핸즈는 실버의 오른팔 역할을 하는 거친 해적 스파이입니다."
+            },
+            {
+                id: "smollett",
+                name: "스몰렛 선장",
+                role: "히스파니올라호 선장",
+                img: "input_file_2.png",
+                dialogue: "이 배의 선원 구성이 영 마음에 들지 않소! 보물 소문이 다 퍼졌단 말요! 하지만 난 목숨 바쳐 배를 지킬 것이오!",
+                clues: ["항해 망원경", "단정한 선장 제복", "엄격한 항해 일지", "까칠하지만 책임감 강함"],
+                realRole: "충직", // 까칠하지만 진짜 충직함
+                secretInfo: "스몰렛 선장은 불평이 많고 고지식하지만 진짜 충직한 최고의 선장입니다."
+            },
+            {
+                id: "livesey",
+                name: "리브지 의사",
+                role: "배의 의사이자 판사",
+                img: "input_file_1.png",
+                dialogue: "환자가 있다면 누구든 치료하는 것이 의사의 본분이죠! 엉뚱해 보여도 정의와 법률을 철저히 지킵니다!",
+                clues: ["응급 구급 상자", "세련된 정통 가발", "의사 및 판사 신분증", "엉뚱하지만 지혜로움"],
+                realRole: "충직", // 정의로운 의사
+                secretInfo: "리브지 의사는 침착하고 지혜롭게 짐을 돕는 유능한 우군입니다."
+            }
+        ];
+
+        let currentIndex = 0;
+        let playerChoices = {};
+        let soundEnabled = true;
+
+        // Web Audio API 효과음 생성기 (외부 파일 없이 동작)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now); // A3
+                osc.frequency.setValueAtTime(164.81, now + 0.15); // E3
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'rebellion') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.5);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('soundToggleBtn');
+            btn.textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startGame() {
+            playSound('click');
+            currentIndex = 0;
+            playerChoices = {};
+            showScreen('screen-interrogate');
+            loadCharacter(currentIndex);
+        }
+
+        function loadCharacter(index) {
+            const char = charactersData[index];
+            
+            // 프로그래스 바 Update
+            const progressPercent = ((index + 1) / charactersData.length) * 100;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+            // 카드 정보 세팅
+            document.getElementById('charImg').src = char.img;
+            document.getElementById('charName').textContent = char.name;
+            document.getElementById('charRole').textContent = char.role;
+            document.getElementById('charDialogue').textContent = `"${char.dialogue}"`;
+
+            // 힌트 세팅
+            const cluesContainer = document.getElementById('charClues');
+            cluesContainer.innerHTML = '';
+            char.clues.forEach(clue => {
+                const badge = document.createElement('span');
+                badge.className = 'clue-badge';
+                badge.textContent = `• ${clue}`;
+                cluesContainer.appendChild(badge);
+            });
+        }
+
+        function makeChoice(choice) {
+            const currentChar = charactersData[currentIndex];
+            playerChoices[currentChar.id] = choice;
+
+            const isRight = (choice === currentChar.realRole);
+            showFeedback(isRight);
+
+            if (isRight) {
+                playSound('correct');
+            } else {
+                playSound('wrong');
+            }
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < charactersData.length) {
+                    loadCharacter(currentIndex);
+                } else {
+                    evaluateResults();
+                }
+            }, 600);
+        }
+
+        function showFeedback(isCorrect) {
+            const overlay = document.getElementById('feedbackOverlay');
+            const badge = document.getElementById('feedbackBadge');
+
+            overlay.className = 'feedback-overlay active ' + (isCorrect ? 'correct' : 'wrong');
+            badge.textContent = isCorrect ? '⭕ 정답!' : '❌ 위험!';
+
+            setTimeout(() => {
+                overlay.className = 'feedback-overlay';
+            }, 550);
+        }
+
+        function evaluateResults() {
+            // 반전 엔딩 조건: 실버를 [충직한 선원]으로 잘못 선택한 경우
+            const silverChoice = playerChoices['silver'];
+            
+            let allCorrect = true;
+            charactersData.forEach(char => {
+                if (playerChoices[char.id] !== char.realRole) {
+                    allCorrect = false;
+                }
+            });
+
+            const endingCard = document.getElementById('endingCard');
+            const endingIcon = document.getElementById('endingIcon');
+            const endingTitle = document.getElementById('endingTitle');
+            const endingDesc = document.getElementById('endingDesc');
+
+            if (silverChoice === '충직') {
+                // 반전 엔딩 (실버에게 속았을 때)
+                playSound('rebellion');
+                endingCard.className = 'ending-card rebellion';
+                endingIcon.textContent = '🚨🏴‍☠️';
+                endingTitle.textContent = '반전 엔딩: 밤중에 일어난 해적 반란!';
+                endingDesc.innerHTML = `
+                    친절하고 요리를 잘해주던 <strong>'외다리 요리사 실버'</strong>를 완벽히 믿었군요!<br>
+                    하지만 달빛이 어두워진 밤, 실버는 순식간에 보물선의 키를 빼앗고 해적 기를 올렸습니다!<br>
+                    <span style="color: #ef4444; font-weight: bold;">"허허, 짐 도령! 내 친절함에 완벽히 속았구나!"</span>
+                `;
+            } else if (allCorrect) {
+                // 성공 엔딩 (모두 맞춤)
+                playSound('correct');
+                endingCard.className = 'ending-card success';
+                endingIcon.textContent = '👑💎';
+                endingTitle.textContent = '성공 엔딩: 보물섬 무사 도착!';
+                endingDesc.innerHTML = `
+                    축하합니다! 당신은 겉으로 친절해 보이던 <strong>존 실버</strong>의 음모를 가려내고,<br>
+                    까칠하지만 충직했던 <strong>스몰렛 선장</strong>과 <strong>리브지 의사</strong>를 지켜냈습니다!<br>
+                    해적 스파이들을 가두고 무사히 보물섬에 도착했습니다!
+                `;
+            } else {
+                // 일반 추리 실패 엔딩
+                playSound('wrong');
+                endingCard.className = 'ending-card rebellion';
+                endingIcon.textContent = '⚓⚠️';
+                endingTitle.textContent = '추리 실패: 해적 스파이 침투!';
+                endingDesc.innerHTML = `
+                    스파이를 가려내는 데 일부 실패하여 보물선에 혼란이 찾아왔습니다!<br>
+                    선원들의 대사와 소지품 힌트를 다시 한번 정밀하게 추리해 보세요!
+                `;
+            }
+
+            showScreen('screen-ending');
+        }
+
+        function resetGame() {
+            playSound('click');
+            showScreen('screen-intro');
+        }
+    </script>
+</body>
+</html>
